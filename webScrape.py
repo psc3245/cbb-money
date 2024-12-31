@@ -27,7 +27,7 @@ def scrape_cbb(url):
         return None
 
     # Extract headers from <thead>
-    headers = [th.text.strip() for th in table.find('thead').find_all('th')]
+    headers = [th.text.strip() for th in table.find('thead').find_all('tr', class_=lambda x: x != 'over_header')]
 
     # Extract rows from <tbody>
     rows = []
@@ -83,9 +83,19 @@ seasons = [2022,2023,2024]
 cbb_data = scrape_seasons(base_url, seasons)
 cbb_data.to_csv('cbb_stats.csv', index=False)
 
+## Get data frames for each season
+df_list = []
+for season in seasons:
+    season_df = cbb_data[cbb_data['Season'] == season]
+    df_list.append(season_df)
+
 print(cbb_data.head())
 
 #%% Testing and what not
+
+for i in range(0,len(seasons)-1):
+    print(df_list[i])
+    
 
 
 
