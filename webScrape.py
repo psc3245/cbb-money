@@ -40,9 +40,9 @@ def scrape_seasons(base_url, seasons):
         if df is not None:
             df['Season'] = season
             all_data = pd.concat([all_data, df], ignore_index=True)
-    
-    # Random delay between 3 and 6 seconds to avoid detection and keep within limits
-    time.sleep(random.randint(3, 6))
+        
+        # Random delay between 3 and 6 seconds to avoid detection and keep within limits
+        time.sleep(random.randint(3, 6))
         
     return all_data
 
@@ -60,11 +60,46 @@ def scrape_team_gamelog(base_url, seasons, schools):
                 df['School'] = school
                 all_data = pd.concat([all_data, df], ignore_index=True)
                 
-    # Random delay between 3 and 6 seconds to avoid detection and keep within limits
-    time.sleep(random.randint(3, 6))
+            # Random delay between 3 and 6 seconds to avoid detection and keep within limits
+            time.sleep(random.randint(3, 6))
     
     return all_data
     
+#%% Cleaning function (data should be clean?)
+def cleanSeasonData(url):
+    if (cbb_data.isnull.values.any()):
+        print("Null values appear.")
+    else:
+        print("No null values appear.")
+#%% Function to get list of all schools
+def getSchoolList():
+    url = 'https://www.sports-reference.com/cbb/seasons/men/2025-school-stats.html'
+    print(f"Scraping: {url}")
+    tables = pd.read_html(url, header=[1])
+    
+    # Extract the 'School' column and drop all Nan values
+    schools_df = (tables[0][tables[0].columns[1]]).dropna()
+
+    # Apply the formatting function to the school names
+    school_list = [format_school_name(school) for school in schools_df.tolist()]
+    
+    # Remove 'school' from list (scrape grabs the 'school' headers)
+    school_list = [school for school in school_list if school.lower() != 'school']
+    
+    return school_list
+
+#%% Function to format school names for the url
+def format_school_name(school):
+    school = school.replace('East Texas A&M', 'texas-am-commerce')
+    school = school.replace('(','')
+    school = school.replace(')','')
+    school = school.replace(' ', '-')
+    school = school.replace('&','')
+    school = school.replace("'","")
+    school = school.replace('.','')
+    school = school.lower()
+    return school
+        
 #%% Run scrape function
 
 # BASE URL
@@ -104,48 +139,6 @@ for season in seasons:
         season_df.to_csv(f'DataFrames/Team-Gamelogs/{season}/{school}-gamelogs.csv')
         
 print("Finished scraping team gamelogs")
-
-
-
-#%% Cleaning function (data should be clean?)
-def cleanSeasonData(url):
-    if (cbb_data.isnull.values.any()):
-        print("Null values appear.")
-    else:
-        print("No null values appear.")
-    
-    
-
-
-
-#%% Function to get list of all schools
-def getSchoolList():
-    url = 'https://www.sports-reference.com/cbb/seasons/men/2025-school-stats.html'
-    tables = pd.read_html(url, header=[1])
-    
-    # Extract the 'School' column and drop all Nan values
-    schools_df = (tables[0][tables[0].columns[1]]).dropna()
-
-    # Apply the formatting function to the school names
-    school_list = [format_school_name(school) for school in schools_df.tolist()]
-    
-    # Remove 'school' from list (scrape grabs the 'school' headers)
-    school_list = [school for school in school_list if school.lower() != 'school']
-    
-    return school_list
-
-#%% Function to format school names for the url
-def format_school_name(school):
-    school = school.replace('East Texas A&M', 'texas-am-commerce')
-    school = school.replace('(','')
-    school = school.replace(')','')
-    school = school.replace(' ', '-')
-    school = school.replace('&','')
-    school = school.replace("'","")
-    school = school.replace('.','')
-    school = school.lower()
-    return school
-        
 
 
 
