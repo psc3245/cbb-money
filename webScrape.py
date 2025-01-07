@@ -53,7 +53,7 @@ def scrape_team_gamelog(base_url, seasons, schools):
     for season in seasons:
         for school in schools:
             url = f"{base_url}/schools/{school}/men/{season}-gamelogs.html"
-            df = scrape_cbb(url, tableId='all_sgl-basic_NCAAM')    
+            df = scrape_cbb(url)    
             
             if df is not None:
                 df['Season'] = season
