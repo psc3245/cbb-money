@@ -47,10 +47,11 @@ def scrape_seasons(base_url, seasons):
     return all_data
 
 #%% Create function to get each teams wins and losses data
-def scrape_team_gamelog(base_url, seasons, schools):
+def scrape_team_gamelog(base_url, seasons):
     all_data = pd.DataFrame()
     
     for season in seasons:
+        schools = getSchoolList(season)
         for school in schools:
             url = f"{base_url}/schools/{school}/men/{season}-gamelogs.html"
             df = scrape_cbb(url)    
@@ -72,31 +73,76 @@ def cleanSeasonData(url):
     else:
         print("No null values appear.")
 #%% Function to get list of all schools
-def getSchoolList():
-    url = 'https://www.sports-reference.com/cbb/seasons/men/2025-school-stats.html'
-    print(f"Scraping: {url}")
+def getSchoolList(season, urlNeeded): # urlNeeeded is for when you need the school names to be changed for the url
+    url = f'https://www.sports-reference.com/cbb/seasons/men/{season}-school-stats.html'
+    print(f"Scraping for school list for season {season}")
     tables = pd.read_html(url, header=[1])
     
     # Extract the 'School' column and drop all Nan values
     schools_df = (tables[0][tables[0].columns[1]]).dropna()
 
-    # Apply the formatting function to the school names
-    school_list = [format_school_name(school) for school in schools_df.tolist()]
+    # Convert to list
+    schools_list = schools_df.tolist()
+    
+    if urlNeeded:
+        # Apply the formatting function to the school names if using for url
+        school_list = [format_school_name(school) for school in schools_list]
     
     # Remove 'school' from list (scrape grabs the 'school' headers)
     school_list = [school for school in school_list if school.lower() != 'school']
+    
+    # Random delay between 3 and 6 seconds to avoid detection and keep within limits
+    time.sleep(random.randint(3, 6))
+    
+    print("Done scraping for school list.")
     
     return school_list
 
 #%% Function to format school names for the url
 def format_school_name(school):
-    school = school.replace('East Texas A&M', 'texas-am-commerce')
+    # Past seasons have ncaa in them for some teams
+    school = school.replace('\xa0NCAA','')
     school = school.replace('(','')
     school = school.replace(')','')
     school = school.replace(' ', '-')
     school = school.replace('&','')
     school = school.replace("'","")
     school = school.replace('.','')
+    
+    # Random school changes in their url
+    school = school.replace('east-texas-am', 'texas-am-commerce')
+    school = school.replace('fdu','fairleigh-dickinson')
+    school = school.replace('houston-christian','houston-baptist')
+    school = school.replace('iu-indy','iupui')
+    school = school.replace('kansas-city', 'missouri-kansas-city')
+    school = school.replace('little-rock','arkansas-little-rock')
+    school = school.replace('louisiana','louisiana-lafayette')
+    school = school.replace('nc-state','north-carolina-state')
+    school = school.replace('omaha','nebraska-omaha')
+    school = school.replace('purdue-fort-wayne','ipfw')
+    school = school.replace('sam-houston','sam-houston-state')
+    school = school.replace('siu-edwardsville','southern-illinois-edwardsville')
+    school = school.replace('st-thomas','st-thomas-mn')
+    school = school.replace('tcu','texas-christian')
+    school = school.replace('texas-rio-grande-valley','texas-pan-american')
+    school = school.replace('the-citadel','citadel')
+    school = school.replace('uab','alabama-birmingham')
+    school = school.replace('uc-davis','california-davis')
+    school = school.replace('uc-irvine','california-irvine')
+    school = school.replace('uc-riverside','california-riverside')
+    school = school.replace('uc-san-diego','california-san-diego')
+    school = school.replace('uc-santa-barbara','california-santa-barbara')
+    school = school.replace('ucf','central-florida')
+    school = school.replace('unc-asheville','north-carolina-asheville')
+    school = school.replace('unc-greensboro','north-carolina-greensboro')
+    school = school.replace('unc-wilmington','north-carolina-wilmington')
+    school = school.replace('ut-arlington','texas-arlington')
+    school = school.replace('utah-tech','dixie-state')
+    school = school.replace('utep','texas-el-paso')
+    school = school.replace('utsa','texas-san-antonio')
+    school = school.replace('vmi','virginia-military-institute')
+    school = school.replace('william--mary','william-mary')
+    school = school.replace('','')
     school = school.lower()
     return school
         
@@ -119,26 +165,24 @@ for season in seasons:
     # Save to csv (could save to variable here but think its redundant)
     season_df.to_csv(f'DataFrames/Overall-Data/{season}_stats.csv')
 
-print("Finished scraping overall data.")
+print("Finished scraping and creating overall data dataframes.")
 
 ##### Now scrape team gamelogs #####
 
-# Get list of schools
-schools = getSchoolList()
-
 # scrape function
-all_teams_logs = scrape_team_gamelog(base_url, seasons, schools)
+all_teams_logs = scrape_team_gamelog(base_url, seasons)
 
 # Get data frames for each season
 df_list = []
 for season in seasons:
+    schools = getSchoolList(season, urlNeeded=False)
     for school in schools:
         season_df = all_teams_logs[all_teams_logs['Season'] == season]
         school_df = season_df[season_df['School']]
         # Save to csv
         season_df.to_csv(f'DataFrames/Team-Gamelogs/{season}/{school}-gamelogs.csv')
         
-print("Finished scraping team gamelogs")
+print("Finished scraping and creating dataframes for all team gamelogs.")
 
 
 
