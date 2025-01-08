@@ -82,11 +82,11 @@ def getSchoolList(season, urlNeeded): # urlNeeeded is for when you need the scho
     schools_df = (tables[0][tables[0].columns[1]]).dropna()
 
     # Convert to list
-    schools_list = schools_df.tolist()
+    school_list = schools_df.tolist()
     
     if urlNeeded:
         # Apply the formatting function to the school names if using for url
-        school_list = [format_school_name(school) for school in schools_list]
+        school_list = [format_school_name(school) for school in school_list]
     
     # Remove 'school' from list (scrape grabs the 'school' headers)
     school_list = [school for school in school_list if school.lower() != 'school']
@@ -94,7 +94,7 @@ def getSchoolList(season, urlNeeded): # urlNeeeded is for when you need the scho
     # Random delay between 3 and 6 seconds to avoid detection and keep within limits
     time.sleep(random.randint(3, 6))
     
-    print("Done scraping for school list.")
+    print("Done scraping for school list, season {season}.")
     
     return school_list
 
@@ -175,12 +175,13 @@ all_teams_logs = scrape_team_gamelog(base_url, seasons)
 # Get data frames for each season
 df_list = []
 for season in seasons:
-    schools = getSchoolList(season, urlNeeded=False)
+    schools = getSchoolList(season, urlNeeded=True)
     for school in schools:
         season_df = all_teams_logs[all_teams_logs['Season'] == season]
-        school_df = season_df[season_df['School']]
+        school_df = season_df[season_df['School'] == school]
         # Save to csv
-        season_df.to_csv(f'DataFrames/Team-Gamelogs/{season}/{school}-gamelogs.csv')
+        school_df.to_csv(f'DataFrames/Team-Gamelogs/{season}/{school}-gamelogs.csv')
+    print(f'Done saving season {season} to csv.')
         
 print("Finished scraping and creating dataframes for all team gamelogs.")
 
