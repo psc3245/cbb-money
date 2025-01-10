@@ -5,10 +5,6 @@ Created on Mon Dec 30 16:24:07 2024
 @author: Logmo
 """
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 import time
 import random
@@ -17,10 +13,10 @@ import random
 def scrape_cbb(url):
     print(f"Scraping: {url}")
     try:
-        # Get list of tables
+        # Returns list of tables (In our case there is one table)
         df = pd.read_html(url, header=[1])
         
-        # Turn to dataframe
+        # Get first table
         df = df[0]
         
         return df
@@ -146,7 +142,7 @@ def format_school_name(school):
     school = school.lower()
     return school
         
-#%% Run scrape function
+#%% Run scrape function (i guess i dont have a main function so this would be it)
 
 # BASE URL
 base_url = "https://www.sports-reference.com/cbb"
