@@ -142,16 +142,15 @@ def format_school_name(school):
     school = school.lower()
     return school
         
-#%% Run scrape function (i guess i dont have a main function so this would be it)
 
+#%% RUN FIRST
 # BASE URL
 base_url = "https://www.sports-reference.com/cbb"
 
 # For now use seasons 2022, 2023, 2024, 2025
 seasons = [2022,2023,2024,2025]
 
-##### Scrape overall cbb data #####
-
+#%% Scrape overall cbb data
 cbb_data = scrape_seasons(base_url, seasons)
 
 ## Get data frames for each season
@@ -163,9 +162,7 @@ for season in seasons:
 
 print("Finished scraping and creating overall data dataframes.")
 
-##### Now scrape team gamelogs #####
-
-# scrape function
+#%% Scrape team game logs (WILL TAKE 3+ HOURS)
 all_teams_logs = scrape_team_gamelog(base_url, seasons)
 
 # Get data frames for each season

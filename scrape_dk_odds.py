@@ -9,20 +9,25 @@ import pandas as pd
 import time
 import random
 import re
+import datetime
 
 #%% Scrape function
-def scrape_dk(url,day):
+def scrape_dk():
+    url = "https://sportsbook.draftkings.com/leagues/basketball/ncaab"
     print(f"Scraping: {url}")
     try:
         # Returns list of tables on the html page
-        df = pd.read_html(base_url)
+        df = pd.read_html(url)
         
-        if day == 'Today':
-            df = df[0]
-        else:
-            df = df[1]
+        # Get first and second table and turn to one dataframe (draftkings is weird, this will get all games)
+        df1 = df[0]
+        df2 = df[1]
+        df = pd.concat([df1,df2],ignore_index=True)
         
-        df = circumsize(df,day)
+        # Combine 'Today' and 'Tomorrow' columns (again draftkings tables are weird)
+        df['Time'] = df['Today'].fillna('') + df['Tomorrow'].fillna('')
+        
+        df = circumsize(df)
         
         return df
     
@@ -32,7 +37,7 @@ def scrape_dk(url,day):
 
 
 #%% General clean/reformating data
-def circumsize(df,day):
+def circumsize(df):
     # I THOUGHT I WAS GOATED BUT SLIGHTLY FAILED THIS IS CLAUDE RECONSTRUCTION (ABSOLUTE GOAT AI)
     # Split dataframe into away and home teams
     away = df.iloc[::2].reset_index(drop=True)
@@ -40,13 +45,13 @@ def circumsize(df,day):
     
     # Create combined dataframe
     paired_df = pd.DataFrame({
-        'Time': away[f'{day}'].str.extract(r'(\d{1,2}:\d{2}(?:AM|PM))')[0],
-        'Away': away[f'{day}'].str.extract(r'\d{1,2}:\d{2}(?:AM|PM)(.+)')[0].str.strip(),
-        'Home': home[f'{day}'].str.extract(r'\d{1,2}:\d{2}(?:AM|PM)(.+)')[0].str.strip(),
+        'Time': away['Time'].str.extract(r'(\d{1,2}:\d{2}(?:AM|PM))')[0],
+        'Away': away['Time'].str.extract(r'\d{1,2}:\d{2}(?:AM|PM)(.+)')[0].str.strip(),
+        'Home': home['Time'].str.extract(r'\d{1,2}:\d{2}(?:AM|PM)(.+)')[0].str.strip(),
         'Spread (A)': away['Spread'].str.extract(r'([+-]?\d*\.?\d+|PK)')[0],
-        'Spread Odds (A)': away['Spread'].str.extract(r'[+-]?\d*\.?\d+\s*([-−]\d+)')[0].str.replace('−', '-'),
+        'Spread Odds (A)': away['Spread'].str.extract(r'[+-]?\d*\.?\d+\s*([+-−]\d+)')[0].str.replace('−', '-'),
         'Spread (H)': home['Spread'].str.extract(r'([+-]?\d*\.?\d+|PK)')[0],
-        'Spread Odds (H)': home['Spread'].str.extract(r'[+-]?\d*\.?\d+\s*([-−]\d+)')[0].str.replace('−', '-'),
+        'Spread Odds (H)': home['Spread'].str.extract(r'[+-]?\d*\.?\d+\s*([+-−]\d+)')[0].str.replace('−', '-'),
         'Total': away['Total'].str.extract(r'O\s*(\d+\.?\d*)')[0],
         'Over Odds': away['Total'].str.extract(r'O\s*\d+\.?\d*\s*([-−]\d+)')[0].str.replace('−', '-'),
         'Under Odds': home['Total'].str.extract(r'U\s*\d+\.?\d*\s*([-−]\d+)')[0].str.replace('−', '-'),
@@ -55,11 +60,11 @@ def circumsize(df,day):
     })
     
     return paired_df
+
 #%% Run scrape function
-base_url = "https://sportsbook.draftkings.com/leagues/basketball/ncaab"
- 
-odds_data = scrape_dk(base_url, day = 'Tomorrow')
-odds_data.to_csv('DataFrames/Betting-Odds/first-betting-odds.csv')
+odds_data = scrape_dk()
+date = datetime.date.today().strftime("%d-%m-%Y")
+odds_data.to_csv(f'DataFrames/Betting-Odds/{date}-Odds.csv')
  
  
  
