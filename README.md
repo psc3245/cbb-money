@@ -19,3 +19,11 @@ Steps:
 
 Found someone elses API for this, pretty sure API key costs money tho
 https://rapidapi.com/odds-papi-odds-papi-default/api/odds-api1/playground/apiendpoint_f219be79-51fe-4f39-a902-38a62d1dd4cf
+
+
+npm run devStart
+
+Apple only notes:
+
+brew services start mongodb-community@8.0
+brew services stop mongodb-community@8.0
