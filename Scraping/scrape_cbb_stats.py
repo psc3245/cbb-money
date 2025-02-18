@@ -154,6 +154,7 @@ cbb_data = scrape_seasons(base_url, seasons)
 
 ## Get data frames for each season
 df_list = []
+# MAKE SURE YOUR DIRECTORY IS SET CORRECTLY IN ORDER TO SAVE THE CSV IN THE CORRECT PLACE
 for season in seasons:
     season_df = cbb_data[cbb_data['Season'] == season]
     # Save to csv (could save to variable here but think its redundant)
