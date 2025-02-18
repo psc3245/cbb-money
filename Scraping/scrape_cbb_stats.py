@@ -39,6 +39,7 @@ def scrape_seasons(base_url, seasons):
     for season in seasons:
         url = f"{base_url}/seasons/{season}-school-stats.html"
         df = scrape_cbb(url)
+        df = cleanSeasonData(df)
         
         if df is not None:
             df['Season'] = season
@@ -69,12 +70,20 @@ def scrape_team_gamelog(base_url, seasons):
     
     return all_data
     
-#%% Cleaning function (data should be clean?)
-def cleanSeasonData(url):
-    if (cbb_data.isnull.values.any()):
-        print("Null values appear.")
-    else:
-        print("No null values appear.")
+#%% Cleaning and preparing data function
+def cleanSeasonData(df):
+    # Need to drop rows with no team name still
+    
+    # Drop 'unnamed' columns
+    df = df.loc[:, ~df.columns.str.startswith('Unnamed')]
+    # Rename wins and losses columns
+    df = df.rename(columns={'W': 'W_Tot', 'L': 'L_Tot','W.1': 'W_Conf', 'L.1': 'L_Conf', 'W.2': 'W_Home', 'L.2': 'L_Home', 'W.3': 'W_Away', 'L.3': 'L_Away'})    
+    # Rename points columns
+    df = df.rename(columns={'Tm.': 'Tm_Pts', 'Opp.': 'Opp_Pts'})
+    # Rename SRS and SOS for clarity
+    df = df.rename(columns={'SRS': 'Simple_Rating_System', 'SOS': 'Stregnth_Of_Schedule'})
+    return df
+
 #%% Function to get list of all schools
 def getSchoolList(season, urlNeeded): # urlNeeeded is for when you need the school names to be changed for the url
     url = f'https://www.sports-reference.com/cbb/seasons/men/{season}-school-stats.html'
@@ -145,7 +154,6 @@ def format_school_name(school):
     school = school.replace('utsa','texas-san-antonio')
     school = school.replace('vmi','virginia-military-institute')
     school = school.replace('william--mary','william-mary')
-    school = school.replace('','')
     school = school.lower()
     return school
 
