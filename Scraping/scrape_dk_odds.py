@@ -24,10 +24,10 @@ def scrape_dk():
         df2 = df[1]
         df = pd.concat([df1,df2],ignore_index=True)
         
-        # Combine 'Today' and 'Tomorrow' columns (again draftkings tables are weird)
-        df['Time'] = df['Today'].fillna('') + df['Tomorrow'].fillna('')
+        # Combine time columns (again draftkings tables are weird) (grab first column and last)
+        df['Time'] = df[df.columns[0]].fillna('') + df[df.columns[-1]].fillna('')
         
-        df = circumsize(df)
+        df = clean(df)
         
         return df
     
@@ -37,8 +37,7 @@ def scrape_dk():
 
 
 #%% General clean/reformating data
-def circumsize(df):
-    # I THOUGHT I WAS GOATED BUT SLIGHTLY FAILED THIS IS CLAUDE RECONSTRUCTION (ABSOLUTE GOAT AI)
+def clean(df):
     # Split dataframe into away and home teams
     away = df.iloc[::2].reset_index(drop=True)
     home = df.iloc[1::2].reset_index(drop=True)
