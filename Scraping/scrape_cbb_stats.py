@@ -55,7 +55,7 @@ def scrape_team_gamelog(base_url, seasons):
     all_data = pd.DataFrame()
     
     for season in seasons:
-        schools = getSchoolList(season)
+        schools = getSchoolList(season, urlNeeded=True)
         for school in schools:
             url = f"{base_url}/schools/{school}/men/{season}-gamelogs.html"
             df = scrape_cbb(url)    
@@ -106,7 +106,7 @@ def getSchoolList(season, urlNeeded): # urlNeeeded is for when you need the scho
     # Random delay between 3 and 6 seconds to avoid detection and keep within limits
     time.sleep(random.randint(3, 6))
     
-    print("Done scraping for school list, season {season}.")
+    print(f"Done scraping for school list, season {season}.")
     
     return school_list
 
@@ -171,20 +171,21 @@ for season in seasons:
 print("Finished scraping and creating overall data dataframes.")
 
 #%% Scrape team game logs (WILL TAKE 3+ HOURS) UNCOMMENT WHEN NEEDING TO RUN
-# all_teams_logs = scrape_team_gamelog(base_url, seasons)
+all_teams_logs = scrape_team_gamelog(base_url, seasons)
 
-# # Get data frames for each season
-# df_list = []
-# for season in seasons:
-#     schools = getSchoolList(season, urlNeeded=True)
-#     for school in schools:
-#         season_df = all_teams_logs[all_teams_logs['Season'] == season]
-#         school_df = season_df[season_df['School'] == school]
-#         # Save to csv
-#         school_df.to_csv(f'DataFrames/Team-Gamelogs/{season}/{school}-gamelogs.csv')
-#     print(f'Done saving season {season} to csv.')
+# Get data frames for each season
+df_list = []
+seasons = [2025]
+for season in seasons:
+    schools = getSchoolList(season, urlNeeded=True)
+    for school in schools:
+        season_df = all_teams_logs[all_teams_logs['Season'] == season]
+        school_df = season_df[season_df['School'] == school]
+        # Save to csv
+        school_df.to_csv(f'C:/Users/Logmo/cbb-money/DataFrames/Team-Gamelogs/{season}/{school}-gamelogs.csv')
+    print(f'Done saving season {season} to csv.')
         
-# print("Finished scraping and creating dataframes for all team gamelogs.")
+print("Finished scraping and creating dataframes for all team gamelogs.")
 
 
 
