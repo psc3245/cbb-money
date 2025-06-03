@@ -1,10 +1,10 @@
 # Notes for myself about what I need to change up in how the dataframes are saved
 
-## Season DataFrames
-- First column needs to be deleted, index
-- Every 20st and 21st row is column names reiterated (rows 20,21,42,43,64,65.... need to be deleted)
-- Rk. column (2nd col) can also be deleted, another index
-- has column for season number, not sure if we want this still or not (something to think about)
+## Season DataFrames (DONE) (when scraping season stats the dataframe you get should be goated (LGTM))
+- (DONE) First column needs to be deleted, index 
+- (DONE) Every 20st and 21st row is column names reiterated (rows 20,21,42,43,64,65.... need to be deleted)
+- (DONE) Rk. column (2nd col) can also be deleted, another index
+- (DONE) has column for season number, not sure if we want this still or not (something to think about)
 
 ## Gamelogs DataFrames
 - First two columns are an index (can be deleted) (maybe keep one for game number in season but dataframes have built in index pogCHAMP)

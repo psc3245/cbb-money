@@ -55,7 +55,7 @@ def scrape_team_gamelog(base_url, seasons):
     all_data = pd.DataFrame()
     
     for season in seasons:
-        schools = getSchoolList(season, urlNeeded=True)
+        schools = getSchoolList(season)
         for school in schools:
             url = f"{base_url}/schools/{school}/men/{season}-gamelogs.html"
             df = scrape_cbb(url)    
@@ -72,20 +72,37 @@ def scrape_team_gamelog(base_url, seasons):
     
 #%% Cleaning and preparing data function
 def cleanSeasonData(df):
-    # Need to drop rows with no team name still
+    # Need to drop rows with no team name still (hi past self, I am still unsure why there are team names missing in gamelogs ill look another time)
     
     # Drop 'unnamed' columns
-    df = df.loc[:, ~df.columns.str.startswith('Unnamed')]
+    df = df.loc[:, ~df.columns.str.startswith('Unnamed')] # IDK if this is working tbh
     # Rename wins and losses columns
     df = df.rename(columns={'W': 'W_Tot', 'L': 'L_Tot','W.1': 'W_Conf', 'L.1': 'L_Conf', 'W.2': 'W_Home', 'L.2': 'L_Home', 'W.3': 'W_Away', 'L.3': 'L_Away'})    
     # Rename points columns
     df = df.rename(columns={'Tm.': 'Tm_Pts', 'Opp.': 'Opp_Pts'})
     # Rename SRS and SOS for clarity
     df = df.rename(columns={'SRS': 'Simple_Rating_System', 'SOS': 'Stregnth_Of_Schedule'})
+
+    # Delete first unnamed column (just an index column)
+    if 'Unnamed: 0' in df.columns:
+        df = df.drop('Unnamed: 0', axis = 1)   
+    # Delete Rk column as well (another index column)
+    if 'Rk' in df.columns:    
+        df = df.drop('Rk', axis = 1)
+    
+    # Delete Season column as file organization shows years
+    # (ILL LEAVE COMMENTED OUT DOESNT MATTER TOO MUCH IF SEASON COLUMN IS THERE OR NOT TBH)
+    if 'Season' in df.columns:
+        df = df.drop('Season', axis = 1) # I act like its hard to drop column if we want to later xD
+    
+    # Delete extra rows with column names
+    df = df.dropna(subset='School') # Drop category row that is iterated
+    df = df[df['School'] != 'School'] # Drop second reiterated column row with Rk value in Rk column
+    
     return df
 
 #%% Function to get list of all schools
-def getSchoolList(season, urlNeeded): # urlNeeeded is for when you need the school names to be changed for the url
+def getSchoolList(season): # urlNeeeded is for when you need the school names to be changed for the url
     url = f'https://www.sports-reference.com/cbb/seasons/men/{season}-school-stats.html'
     print(f"Scraping for school list for season {season}")
     tables = pd.read_html(url, header=[1])
@@ -96,9 +113,7 @@ def getSchoolList(season, urlNeeded): # urlNeeeded is for when you need the scho
     # Convert to list
     school_list = schools_df.tolist()
     
-    if urlNeeded:
-        # Apply the formatting function to the school names if using for url
-        school_list = [format_school_name(school) for school in school_list]
+    school_list = [format_school_name(school) for school in school_list]
     
     # Remove 'school' from list (scrape grabs the 'school' headers)
     school_list = [school for school in school_list if school.lower() != 'school']
@@ -165,8 +180,12 @@ df_list = []
 # MAKE SURE YOUR DIRECTORY IS SET CORRECTLY IN ORDER TO SAVE THE CSV IN THE CORRECT PLACE
 for season in seasons:
     season_df = cbb_data[cbb_data['Season'] == season]
+    
+    # Reset index for each season
+    season_df.reset_index(drop=True, inplace=True)
+    
     # Save to csv (could save to variable here but think its redundant)
-    season_df.to_csv(f'DataFrames/Overall-Data/{season}_stats.csv')
+    season_df.to_csv(f'C:/Users/Logmo/cbb-money/DataFrames/Overall-Data/{season}_stats.csv')
 
 print("Finished scraping and creating overall data dataframes.")
 
@@ -175,9 +194,8 @@ all_teams_logs = scrape_team_gamelog(base_url, seasons)
 
 # Get data frames for each season
 df_list = []
-seasons = [2025]
 for season in seasons:
-    schools = getSchoolList(season, urlNeeded=True)
+    schools = getSchoolList(season)
     for school in schools:
         season_df = all_teams_logs[all_teams_logs['Season'] == season]
         school_df = season_df[season_df['School'] == school]
