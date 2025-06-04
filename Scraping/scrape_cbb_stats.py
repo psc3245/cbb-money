@@ -65,12 +65,63 @@ def scrape_team_gamelog(base_url, seasons):
                 df['School'] = school
                 all_data = pd.concat([all_data, df], ignore_index=True)
                 
+            df = clean_gamelogs(df)
+                
             # Random delay between 3 and 6 seconds to avoid detection and keep within limits
             time.sleep(random.randint(3, 6))
     
     return all_data
+#%% Cleaning and preparing gamelog dataframe function    
+def clean_gamelogs(df):    
+    # delete index columns
+    if 'Unnamed: 0' in df and 'Rk' in df and 'Gtm' in df:
+        df = df.drop(['Unnamed: 0','Rk','Gtm'], axis = 1)
+    # Delete season and school columns if you want (ill leave commented out)
+    # if 'Season' in df and 'School' in df:
+    #     df = df.drop(['Season', 'School'], axis = 1)
     
-#%% Cleaning and preparing data function
+    # Delete date column
+    if 'Date' in df:
+        df = df.drop('Date', axis = 1)
+    
+    # change name of home or away column     Rename Reslt to Result     Tm to TeamPts     Opp to AwayPts
+    df = df.rename(columns= {'Unnamed: 3': 'Location', 'Rslt': 'Result', 'Tm': 'TeamPts', 'Opp.1': 'AwayPts'})
+    # change name of team and opponent stats
+    df = df.rename(columns= {'FG': 'Team_FG', 'FGA': 'Team_FGA', 'FG%': 'Team_FG%', '3P': 'Team_3P', '3PA': 'Team_3PA',
+                             '3P%': 'Team_3P%', '2P': 'Team_2P', '2PA': 'Team_2PA', '2P%': 'Team_2P%', 'eFG%': 'Team_eFG%',
+                             'FT': 'Team_FT', 'FTA': 'Team_FTA', 'FT%': 'Team_FT%', 'ORB': 'Team_ORB', 'DRB': 'Team_DRB', 
+                             'TRB': 'Team_TRB', 'AST': 'Team_AST', 'STL': 'Team_STL', 'BLK': 'Team_BLK', 'TOV': 'Team_TOV',
+                             'PF': 'Team_PF'})
+    df = df.rename(columns= {'FG.1': 'Away_FG', 'FGA.1': 'Away_FGA', 'FG%.1': 'Away_FG%', '3P.1': 'Away_3P', '3PA.1': 'Away_3PA',
+                             '3P%.1': 'Away_3P%', '2P.1': 'Away_2P', '2PA.1': 'Away_2PA', '2P%.1': 'Away_2P%', 'eFG%.1': 'Away_eFG%',
+                             'FT.1': 'Away_FT', 'FTA.1': 'Away_FTA', 'FT%.1': 'Away_FT%', 'ORB.1': 'Away_ORB', 'DRB.1': 'Away_DRB', 
+                             'TRB.1': 'Away_TRB', 'AST.1': 'Away_AST', 'STL.1': 'Away_STL', 'BLK.1': 'Away_BLK', 'TOV.1': 'Away_TOV',
+                             'PF.1': 'Away_PF'})
+    
+    # change the values in the column
+    df['Location'] = df['Location'].fillna('Home')
+    df.loc[df['Location'].str.contains('@', na=False), 'Location'] = 'Away'
+    df.loc[df['Location'].str.contains('N', na=False), 'Location'] = 'Neutral'
+    
+    # Change the value names of 'type' column
+    df.loc[df['Type'].str.contains('REG (Conf)', na = False, regex = False), 'Type'] = 'Conference'
+    df.loc[df['Type'].str.contains('REG (Non-Conf)', na = False, regex = False), 'Type'] = 'Non-Conference'
+    df.loc[df['Type'].str.contains('CTOURN',na = False), 'Type'] = 'CTOURN' #PLACEHOLDER if we want to change it later
+    
+    # Change values in OT column so we don't have null values
+    df['OT'] = df['OT'].fillna(0)
+    df.loc[df['OT'].str.contains('OT', na = False), 'OT'] = 1
+    df['OT'] = df['OT'].astype(int)
+    
+    # Delete extra rows with column names
+    df = df[df['Opp'] != 'Opp']
+    
+    # Delete last row, just totals for the season but we have season stats
+    df = df[df['Opp'].notna()]
+    
+    return df
+
+#%% Cleaning and preparing season dataframe function
 def cleanSeasonData(df):
     # Need to drop rows with no team name still (hi past self, I am still unsure why there are team names missing in gamelogs ill look another time)
     
@@ -92,8 +143,8 @@ def cleanSeasonData(df):
     
     # Delete Season column as file organization shows years
     # (ILL LEAVE COMMENTED OUT DOESNT MATTER TOO MUCH IF SEASON COLUMN IS THERE OR NOT TBH)
-    if 'Season' in df.columns:
-        df = df.drop('Season', axis = 1) # I act like its hard to drop column if we want to later xD
+    # if 'Season' in df.columns:
+    #     df = df.drop('Season', axis = 1) # I act like its hard to drop column if we want to later xD
     
     # Delete extra rows with column names
     df = df.dropna(subset='School') # Drop category row that is iterated

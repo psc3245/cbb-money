@@ -58,6 +58,9 @@ def clean(df):
         'Moneyline (H)': home['Moneyline'].str.replace('−', '-')
     })
     
+    # Need to delete first column, has blank column name and is just an extra index
+    ####paired_df = paired_df.drop('', axis = 1)
+    
     return paired_df
 
 #%% Run scrape function
